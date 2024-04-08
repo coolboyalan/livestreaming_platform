@@ -1,8 +1,11 @@
 const express = require("express");
 const router = require("./routes/route");
+const NodeMediaServer = require("./controller/liveStreamingController");
 require("dotenv").config();
 
 const app = express();
+
+NodeMediaServer.run();
 
 app.use(express.json());
 
