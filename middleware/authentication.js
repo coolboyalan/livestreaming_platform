@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const MyError = require("../error");
+const errorHandler = require("../error");
 
 const authentication = async (req, res, next) => {
   try {
@@ -21,10 +21,11 @@ const authorization = async (req, res, next) => {
 
     if (req.originalUrl.match(category)) return next();
 
-    throw new MyError({
+    const err = {
       status: 403,
       message: "you ain't allowed to this task",
-    });
+    };
+    errorHandler(err);
   } catch (err) {
     next(err);
   }
