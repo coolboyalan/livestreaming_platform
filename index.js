@@ -1,7 +1,7 @@
 const express = require("express");
 const router = require("./routes/route");
 const NodeMediaServer = require("./controller/liveStreamingController");
-require("dotenv").config();
+require("dotenv").config({ path: `./.env` })
 
 const app = express();
 

@@ -2,6 +2,7 @@
 const NodeMediaServer = require("node-media-server");
 const fs = require("fs");
 const http = require("http");
+require("dotenv").config()
 
 // Set up Node Media Server
 const nmsConfig = {
@@ -13,7 +14,7 @@ const nmsConfig = {
     ping_timeout: 60,
   },
   http: {
-    port: 8000,
+    port: process.env.NMS_PORT,
     allow_origin: "*",
   },
 };
@@ -33,11 +34,13 @@ nms.on("postPublish", (id, streamPath, args) => {
   console.log("[NodeMediaServer] Stream published:", streamPath);
 
   // URL of the image
-  const url = `http://localhost:8000${streamPath}.flv`;
+  const url = `http://localhost:${process.env.NMS_PORT}${streamPath}.flv`;
+  
+  const streamKey = streamPath.split("/")[2];
 
   http.get(url, (res) => {
     // Image will be stored at this path
-    const path = `./media/stream.flv`;
+    const path = `./media/${streamKey + new Date()}.flv`;
     const filePath = fs.createWriteStream(path);
     res.pipe(filePath);
     filePath

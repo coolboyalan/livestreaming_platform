@@ -88,6 +88,9 @@ const creatorModel = sequelize.define("creator", {
     allowNull: false,
     defaultValue: false,
   },
+  streamKey: {
+    type: DataTypes.STRING,
+  },
   isStudioAccount: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
@@ -105,7 +108,7 @@ creatorModel.hasOne(userModel);
 creatorModel.hasOne(descriptionModel);
 creatorModel.hasMany(videoModel);
 studioModel.hasMany(creatorModel);
-creatorModel.belongsTo(studioModel)
+creatorModel.belongsTo(studioModel);
 studioModel.hasOne(userModel);
 viewerModel.hasOne(userModel);
 
