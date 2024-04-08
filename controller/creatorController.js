@@ -2,10 +2,10 @@ const userModel = require("../models/userModel");
 const creatorModel = require("../models/creatorModel");
 const descriptionModel = require("../models/descriptionModel");
 const videoModel = require("../models/videoModel");
+const studioModel = require("../models/studioModel");
 const commonController = require("./commonController");
 const bcrypt = require("bcrypt");
 const errorHandler = require("../error");
-const MyError = require("../error");
 
 async function createUser(userData) {
   try {
@@ -61,25 +61,36 @@ async function addCreator(userData) {
 
 async function creatorLogin(userData) {
   try {
-    const loggedInUser = await commonController.login(userData);
+    const category = "creator";
+    const loggedInUser = await commonController.login(userData, category);
     return loggedInUser;
   } catch (err) {
     errorHandler(err);
   }
 }
 
-async function creatorDetails(userId) {
+async function updateCreator(creatorData) {
+  try {
+    const creator = await creatorDetails(creatorId);
+    await creator.update(creatorData);
+    return creator.toJSON();
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function creatorDetails(creatorId) {
   try {
     const creator = await creatorModel.findOne({
-      where: { id: userId },
-      include: [userModel, descriptionModel],
+      where: { id: creatorId },
+      include: [userModel, descriptionModel, videoModel, studioModel],
     });
     if (!creator) {
       const error = {
         status: 404,
-        message: "there is no data for this creator",
+        message: "creator doesn't exist",
       };
-      throw new MyError(error);
+      return errorHandler(error);
     }
     const creatorData = creator.toJSON();
     return creatorData;
@@ -135,4 +146,5 @@ module.exports = {
   getLiveCreators,
   addCreator,
   getAllVideosByCreator,
+  updateCreator,
 };

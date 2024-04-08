@@ -105,6 +105,7 @@ creatorModel.hasOne(userModel);
 creatorModel.hasOne(descriptionModel);
 creatorModel.hasMany(videoModel);
 studioModel.hasMany(creatorModel);
+creatorModel.belongsTo(studioModel)
 studioModel.hasOne(userModel);
 viewerModel.hasOne(userModel);
 

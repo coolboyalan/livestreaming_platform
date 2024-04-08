@@ -49,8 +49,8 @@ async function getViewer(viewerId) {
 
 async function viewerLogin(viewerData) {
   try {
-    const loggedInUser = await commonController.login(viewerData);
-    
+    const category = "viewer"
+    const loggedInUser = await commonController.login(viewerData,category);
     return loggedInUser;
   } catch (err) {
     errorHandler(err);

@@ -23,8 +23,8 @@ router.route("/login").post(schemaValidator("loginSchema"), login);
 
 async function getCreatorData(req, res, next) {
   try {
-    const { userId } = req.user;
-    const creatorData = await creatorController.creatorDetails(userId);
+    const { creatorId } = req.user;
+    const creatorData = await creatorController.creatorDetails(creatorId);
     res.status(200).json({ status: true, data: creatorData });
   } catch (err) {
     next(err);
