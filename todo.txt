@@ -1,3 +1,4 @@
 TODO: Encrypt streamKey
 TODO: fix authorization
 TODO: create streampage endpoint
+TODO: add studio APIs - delete creator, suspend creator, etc

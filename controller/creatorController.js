@@ -6,6 +6,8 @@ const studioModel = require("../models/studioModel");
 const commonController = require("./commonController");
 const bcrypt = require("bcrypt");
 const errorHandler = require("../error");
+const fs = require("fs");
+const path = require("path");
 
 async function createUser(userData) {
   try {
@@ -101,12 +103,17 @@ async function creatorDetails(creatorId) {
 
 async function getLiveCreators(contentCategory) {
   try {
-    const script = {};
+    const options = {
+      where: {
+        isLive: true,
+      },
+    };
 
+    // Add condition for content category if provided
     if (contentCategory) {
-      script.where = { contentCategory };
+      options.where.contentCategory = contentCategory;
     }
-    const creators = await creatorModel.findAll(script);
+    const creators = await creatorModel.findAll(options);
     if (!creators) {
       const error = {
         status: 404,
@@ -121,9 +128,56 @@ async function getLiveCreators(contentCategory) {
   }
 }
 
-async function getAllVideosByCreator(userId) {
+async function getLiveStreamCredentials(creatorId) {
   try {
-    const allVideos = await videoModel.findAll({ where: { userId } });
+    const creator = await creatorModel.findOne({
+      where: {
+        id: creatorId,
+      },
+      attributes: ["id", "streamKey"],
+    });
+    creator.streamKey = "test";
+    await creator.save();
+    return creator;
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function getAllVideosByCreator(creatorId) {
+  try {
+    const allVideos = await videoModel.findAll({ where: { creatorId } });
+    return allVideos.toJSON();
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function updateVideoDetails(videoData, videoThumbnail) {
+  try {
+    const { id } = videoData;
+    const video = await videoModel.findOne({ where: { id } });
+
+    const err = {};
+
+    if (!video) {
+      err.status = 404;
+      err.message = "There is no video with this id";
+      return errorHandler(err);
+    }
+
+    let destinationPath;
+    if (videoThumbnail) {
+      destinationPath = path.join("../media", file.originalname);
+      fs.rename(file.path, destinationPath, (err) => {
+        if (err) {
+          err.status = 500;
+          err.message = "Error occurred while uploading file.";
+          return errorHandler(err);
+        }
+        console.log(`File ${file.originalname} uploaded successfully.`);
+      });
+    }
   } catch (err) {
     errorHandler(err);
   }
@@ -144,6 +198,7 @@ module.exports = {
   creatorLogin,
   creatorDetails,
   getLiveCreators,
+  getLiveStreamCredentials,
   addCreator,
   getAllVideosByCreator,
   updateCreator,

@@ -3,11 +3,13 @@ const router = express.Router();
 const creatorRoutes = require("./creatorRoutes");
 const studioRoutes = require("./studioRoutes");
 const viewerRoutes = require("./viewerRoutes");
+const tokenRoutes = require("./tokenRoutes");
 const fs = require("fs");
 
 router.use("/viewer/", viewerRoutes);
 router.use("/creator/", creatorRoutes);
 router.use("/studio/", studioRoutes);
+router.use("/token", tokenRoutes);
 
 router.get("/video", function (req, res) {
   // const range = req.headers.range;

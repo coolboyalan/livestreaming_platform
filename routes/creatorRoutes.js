@@ -6,14 +6,18 @@ const {
   authentication,
   authorization,
 } = require("../middleware/authentication");
-const errorHandler = require("../error");
 
-router.route("/details").get(authentication, authorization, getCreatorData);
+router
+  .route("/details/personal")
+  .get(authentication, authorization, getCreatorPersonalData);
+router.route("/details/:id").get(getCreatorData);
 
 router.route("/liveCreators/:contentCategory").get(getLiveCreators);
-router.route("/videos").get(getAllVideosByCreator);
 
 router.route("/create").post(schemaValidator("registrationSchema"), createUser);
+router
+  .route("/live")
+  .get(authentication, authorization, getLiveStreamCredentials);
 
 router
   .route("/update")
@@ -21,7 +25,23 @@ router
 
 router.route("/login").post(schemaValidator("loginSchema"), login);
 
+router.route("/videos").get(getAllVideosByCreator);
+router.route("/videos/:creatorId").get(getAllVideosByCreator);
+router
+  .route("/videos/edit/:videoId")
+  .put(authentication, authorization, updateVideoDetails);
+
 async function getCreatorData(req, res, next) {
+  try {
+    const { id } = req.params;
+    const creatorData = await creatorController.creatorDetails(id);
+    res.status(200).json({ status: true, data: creatorData });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getCreatorPersonalData(req, res, next) {
   try {
     const { creatorId } = req.user;
     const creatorData = await creatorController.creatorDetails(creatorId);
@@ -33,7 +53,7 @@ async function getCreatorData(req, res, next) {
 
 async function getLiveCreators(req, res, next) {
   try {
-    const contentCategory = req.params.contentCategory;
+    const { contentCategory } = req.params;
     const creators = await creatorController.getLiveCreators(contentCategory);
     res.status(200).json({ status: true, data: creators });
   } catch (err) {
@@ -43,32 +63,31 @@ async function getLiveCreators(req, res, next) {
 
 async function getAllVideosByCreator(req, res, next) {
   try {
-    // TODO: figure out how to do it in a better way when integrating with the frontend
-    const user = req.user;
-    const videos = await creatorController.getAllVideosByCreator(user);
+    const { creatorId } = req.params;
+    const videos = await creatorController.getAllVideosByCreator(creatorId);
     res.status(200).json({ status: true, data: videos });
   } catch (err) {
     next(err);
   }
 }
 
-async function createUser(req, res,next) {
+async function createUser(req, res, next) {
   try {
     const userData = req.body;
     const savedUser = await creatorController.createUser(userData);
     res.status(201).json({ status: true, data: savedUser });
   } catch (err) {
-    next(err)
+    next(err);
   }
 }
 
-async function login(req, res,next) {
+async function login(req, res, next) {
   try {
     const userData = req.body;
     const loggedInUser = await creatorController.creatorLogin(userData);
     res.status(200).json({ status: true, data: loggedInUser });
   } catch (err) {
-    next(err)
+    next(err);
   }
 }
 
@@ -80,6 +99,31 @@ async function saveAdditionalDetails(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).json(err.message);
+  }
+}
+
+async function getLiveStreamCredentials(req, res, next) {
+  try {
+    const { creatorId } = req.user;
+    const LiveStreamCredentials =
+      await creatorController.getLiveStreamCredentials(creatorId);
+    res.status(200).json({ status: true, data: LiveStreamCredentials });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function updateVideoDetails(req, res, next) {
+  try {
+    const videoData = req.body;
+    const videoThumbnail = req.file;
+    const updatedVideo = await creatorController.updateVideoDetails(
+      videoData,
+      videoThumbnail
+    );
+    res.status(200).json(updatedVideo);
+  } catch (err) {
+    next(err);
   }
 }
 

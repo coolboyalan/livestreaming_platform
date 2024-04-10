@@ -6,8 +6,21 @@ const videoModel = sequelize.define("video", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: new Date(),
+  },
   location: {
     type: DataTypes.STRING,
+  },
+  tokenAmount: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  tokenRate: {
+    type: DataTypes.FLOAT,
     allowNull: false,
   },
   thumbnail: {

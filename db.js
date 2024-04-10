@@ -11,7 +11,7 @@ sequelize
     console.error("Unable to connect to the database:", error);
   });
 
-sequelize.sync({force:true}).catch((err) => {
+sequelize.sync().catch((err) => {
   console.log(err.message);
 });
 

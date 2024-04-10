@@ -5,6 +5,7 @@ const descriptionModel = require("./descriptionModel");
 const videoModel = require("./videoModel");
 const studioModel = require("./studioModel");
 const viewerModel = require("./viewerModel");
+const PaymentModel = require("./paymentModel")
 
 const creatorModel = sequelize.define("creator", {
   descriptionId: {
@@ -102,6 +103,9 @@ const creatorModel = sequelize.define("creator", {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  earnedToken : {
+    type:DataTypes.INTEGER
+  }
 });
 
 creatorModel.hasOne(userModel);
