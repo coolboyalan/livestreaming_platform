@@ -18,6 +18,23 @@ const studioModel = sequelize.define("studio", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  studioName: {
+    type: DataTypes.STRING,
+  },
+  studioUrl: {
+    type: DataTypes.STRING,
+  },
+  accountOwner: {
+    type: DataTypes.ENUM({
+      values: ["Individual", "Company"],
+    }),
+  },
+  additionalCotact: {
+    type: DataTypes.STRING,
+  },
+  companyName: {
+    type: DataTypes.STRING,
+  },
   email: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -48,10 +65,17 @@ const studioModel = sequelize.define("studio", {
   governmentIdNo: {
     type: DataTypes.STRING,
   },
-  governmentIdExpiryDate: {
-    type: DataTypes.DATEONLY,
+  idPhoto: {
+    type: DataTypes.STRING,
+  },
+  idVerificationPhoto: {
+    type: DataTypes.STRING,
   },
   country: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  countryOfResidence: {
     type: DataTypes.STRING,
     allowNull: false,
   },

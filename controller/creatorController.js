@@ -4,10 +4,12 @@ const descriptionModel = require("../models/descriptionModel");
 const videoModel = require("../models/videoModel");
 const studioModel = require("../models/studioModel");
 const commonController = require("./commonController");
+const withdrawController = require("./withdrawController");
 const bcrypt = require("bcrypt");
 const errorHandler = require("../error");
 const fs = require("fs");
 const path = require("path");
+const WithdrawModel = require("../models/withdrawModel");
 
 async function createUser(userData) {
   try {
@@ -81,6 +83,34 @@ async function updateCreator(creatorData) {
   }
 }
 
+async function getCreator(creatorId) {
+  try {
+    const creator = await creatorModel.findByPk(creatorId);
+    if (!creator) {
+      const err = {
+        status: 404,
+        message: "there is no creator with this id",
+      };
+      return errorHandler(err);
+    }
+    return creator.toJSON();
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function getAllCreators() {
+  try {
+    const creators = await creatorModel.findAll({
+      where: { isVerified: true },
+      attributes: ["id", "firstName", "lastName", "profilePicture"],
+    });
+    return creators.toJSON();
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
 async function creatorDetails(creatorId) {
   try {
     const creator = await creatorModel.findOne({
@@ -134,8 +164,16 @@ async function getLiveStreamCredentials(creatorId) {
       where: {
         id: creatorId,
       },
-      attributes: ["id", "streamKey"],
+      attributes: ["id", "streamKey", "isVerified"],
     });
+
+    if (!creator.isVerified) {
+      const err = {
+        status: 403,
+        message: "please verify your account to get access to live stream",
+      };
+      return errorHandler(err);
+    }
     creator.streamKey = "test";
     await creator.save();
     return creator;
@@ -148,6 +186,19 @@ async function getAllVideosByCreator(creatorId) {
   try {
     const allVideos = await videoModel.findAll({ where: { creatorId } });
     return allVideos.toJSON();
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function udpateLiveStatus(creatorId, status) {
+  try {
+    const creator = await creatorModel.findByPk(creatorId);
+    creator.isLive = status;
+    if (!status) {
+      creator.streamKey = null;
+    }
+    await creator;
   } catch (err) {
     errorHandler(err);
   }
@@ -183,6 +234,43 @@ async function updateVideoDetails(videoData, videoThumbnail) {
   }
 }
 
+async function updateTokens(creatorId, tokens,internal) {
+  try {
+    const creator = await creatorModel.findByPk(creatorId);
+    creator.availableTokens += tokens;
+    if (tokens > 0 && !internal) {
+      creator.earnedTokens += tokens;
+    }
+    await creator.save();
+    return creator.toJSON();
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function withdrawTokens(creatorId, withdrawData) {
+  try {
+    const creator = await creatorModel.findByPk(creatorId);
+    const { tokenQuantity } = withdrawData;
+    const { availableTokens } = creator.toJSON();
+    if (tokenQuantity > availableTokens) {
+      const err = {
+        status: 404,
+        message: "You don't have enough tokens to withdraw",
+      };
+      return errorHandler(err);
+    }
+
+    withdraw.creatorId = creatorId;
+    withdraw.amount = tokenQuantity * 0.05;
+
+    const withdraw = await withdrawController.createWithdraw(withdrawData);
+    return withdraw;
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
 async function deleteCreatorAccount(id) {
   try {
     const creator = await creatorModel.findOne({ where: { id } });
@@ -202,4 +290,8 @@ module.exports = {
   addCreator,
   getAllVideosByCreator,
   updateCreator,
+  getAllCreators,
+  udpateLiveStatus,
+  updateTokens,
+  getCreator,
 };

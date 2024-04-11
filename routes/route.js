@@ -9,7 +9,7 @@ const fs = require("fs");
 router.use("/viewer/", viewerRoutes);
 router.use("/creator/", creatorRoutes);
 router.use("/studio/", studioRoutes);
-router.use("/token", tokenRoutes);
+router.use("/token/", tokenRoutes);
 
 router.get("/video", function (req, res) {
   // const range = req.headers.range;

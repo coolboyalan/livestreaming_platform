@@ -10,6 +10,7 @@ async function createCreatorUnderStudio(req, res, next) {
     const savedCreatorData = await creatorController.createCreatorUnderStudio(
       creatorData
     );
+    res.status(201).json({ status: true, data: savedCreatorData });
   } catch (err) {
     next(err);
   }

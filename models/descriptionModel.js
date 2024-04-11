@@ -2,7 +2,7 @@ const sequelize = require("../db");
 const { Sequelize, DataTypes } = require("sequelize");
 const creatorModel = require("./creatorModel");
 
-const descriptionModel = sequelize.define("description", {
+const descriptionModel = sequelize.define("creator_description", {
   aboutMe: {
     type: DataTypes.STRING,
   },

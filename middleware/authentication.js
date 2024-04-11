@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const errorHandler = require("../error");
 
-const authentication = async (req, res, next) => {
+async function authentication(req, res, next) {
   try {
     const token = req.headers["auth"];
     const user = jwt.verify(token, process.env.JWT);
@@ -10,9 +10,9 @@ const authentication = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-};
+}
 
-const authorization = async (req, res, next) => {
+async function authorization(req, res, next) {
   try {
     const user = req.user;
     const { category } = user;
@@ -29,6 +29,13 @@ const authorization = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-};
+}
 
+async function subAdmin(req, res, next) {
+  try {
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
 module.exports = { authentication, authorization };

@@ -6,6 +6,7 @@ const registrationSchema = Joi.object({
   password: Joi.string().min(8).required(),
   isAdult: Joi.boolean().required(),
   category: Joi.string().valid("creator", "studio", "viewer").required(),
+  "confirm-password":Joi.string()
 });
 
 const loginSchema = Joi.object({

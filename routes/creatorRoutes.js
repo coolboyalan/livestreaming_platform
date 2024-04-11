@@ -12,6 +12,8 @@ router
   .get(authentication, authorization, getCreatorPersonalData);
 router.route("/details/:id").get(getCreatorData);
 
+router.route("/all").get(getAllCreators);
+
 router.route("/liveCreators/:contentCategory").get(getLiveCreators);
 
 router.route("/create").post(schemaValidator("registrationSchema"), createUser);
@@ -31,11 +33,22 @@ router
   .route("/videos/edit/:videoId")
   .put(authentication, authorization, updateVideoDetails);
 
+router.route("/withdraw").post(withdrawTokens);
+
 async function getCreatorData(req, res, next) {
   try {
     const { id } = req.params;
     const creatorData = await creatorController.creatorDetails(id);
     res.status(200).json({ status: true, data: creatorData });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getAllCreators(req, res, next) {
+  try {
+    const creators = await creatorController.getAllCreators();
+    res.status(200).json(creators);
   } catch (err) {
     next(err);
   }
@@ -122,6 +135,20 @@ async function updateVideoDetails(req, res, next) {
       videoThumbnail
     );
     res.status(200).json(updatedVideo);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function withdrawTokens(req, res, next) {
+  try {
+    const { creatorId } = req.user;
+    const withdrawData = req.body;
+    const updatedWithdrawData = await creatorController.withdrawTokens(
+      creatorId,
+      withdrawData
+    );
+    res.status(200).json(updatedWithdrawData);
   } catch (err) {
     next(err);
   }

@@ -6,6 +6,7 @@ const videoModel = require("./videoModel");
 const studioModel = require("./studioModel");
 const viewerModel = require("./viewerModel");
 const PaymentModel = require("./paymentModel")
+const WithdrawModel = require("./withdrawModel");
 
 const creatorModel = sequelize.define("creator", {
   descriptionId: {
@@ -103,7 +104,14 @@ const creatorModel = sequelize.define("creator", {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-  earnedToken : {
+  isVerified:{
+    type:DataTypes.BOOLEAN,
+    defaultValue:false
+  },
+  earnedTokens : {
+    type:DataTypes.INTEGER
+  },
+  availableTokens:{
     type:DataTypes.INTEGER
   }
 });
@@ -115,5 +123,6 @@ studioModel.hasMany(creatorModel);
 creatorModel.belongsTo(studioModel);
 studioModel.hasOne(userModel);
 viewerModel.hasOne(userModel);
+creatorModel.hasMany(WithdrawModel);
 
 module.exports = creatorModel;

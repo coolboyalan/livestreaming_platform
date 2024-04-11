@@ -36,6 +36,12 @@ const user = sequelize.define(
     studioId: {
       type: DataTypes.INTEGER,
     },
+    followers:{
+      type:DataTypes.JSON
+    },
+    following:{
+      type:DataTypes.JSON
+    },
     totalWatchTIme: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
