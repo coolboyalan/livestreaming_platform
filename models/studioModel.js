@@ -2,9 +2,6 @@ const sequelize = require("../db");
 const { Sequelize, DataTypes } = require("sequelize");
 
 const studioModel = sequelize.define("studio", {
-  descriptionId: {
-    type: DataTypes.INTEGER,
-  },
   contentCategory: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -23,13 +20,16 @@ const studioModel = sequelize.define("studio", {
   },
   studioUrl: {
     type: DataTypes.STRING,
+    validate: {
+      isUrl: true,
+    },
   },
   accountOwner: {
     type: DataTypes.ENUM({
       values: ["Individual", "Company"],
     }),
   },
-  additionalCotact: {
+  additionalContact: {
     type: DataTypes.STRING,
   },
   companyName: {
@@ -61,6 +61,9 @@ const studioModel = sequelize.define("studio", {
   dob: {
     type: DataTypes.DATEONLY,
     allowNull: false,
+    validate: {
+      isDate: true,
+    },
   },
   governmentIdNo: {
     type: DataTypes.STRING,

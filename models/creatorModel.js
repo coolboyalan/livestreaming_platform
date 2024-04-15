@@ -1,11 +1,11 @@
 const sequelize = require("../db");
 const { Sequelize, DataTypes } = require("sequelize");
-const userModel = require("./userModel");
+const User = require("./userModel");
 const descriptionModel = require("./descriptionModel");
 const videoModel = require("./videoModel");
 const studioModel = require("./studioModel");
 const viewerModel = require("./viewerModel");
-const PaymentModel = require("./paymentModel")
+const PaymentModel = require("./paymentModel");
 const WithdrawModel = require("./withdrawModel");
 
 const creatorModel = sequelize.define("creator", {
@@ -15,23 +15,35 @@ const creatorModel = sequelize.define("creator", {
   contentCategory: {
     type: DataTypes.STRING,
     // TODO: to be discussed whether to go with pre-defined category or what
+    allowNull:false
   },
   firstName: {
     type: DataTypes.STRING,
+    allowNull:false
   },
   lastName: {
     type: DataTypes.STRING,
+    allowNull:false
   },
   email: {
     type: DataTypes.STRING,
+    unique:true,
+    allowNull:false
   },
   profilePicture: {
     type: DataTypes.STRING,
+  },
+  governmentIdPicture:{
+    type:DataTypes.STRING,
+  },
+  photoVerification:{
+    type:DataTypes.STRING,
   },
   sex: {
     type: DataTypes.ENUM({
       values: ["Male", "Female", "Others"],
     }),
+    allowNull:false
   },
   category: {
     type: DataTypes.ENUM({
@@ -41,12 +53,15 @@ const creatorModel = sequelize.define("creator", {
   },
   nativeLanguage: {
     type: DataTypes.STRING,
+    allowNull:false
   },
   dob: {
     type: DataTypes.DATEONLY,
+    allowNull:false
   },
   governmentIdNo: {
     type: DataTypes.STRING,
+    allowNull:false
   },
   governmentIdExpiryDate: {
     type: DataTypes.DATEONLY,
@@ -99,30 +114,38 @@ const creatorModel = sequelize.define("creator", {
   },
   studioId: {
     type: DataTypes.INTEGER,
+    defaultValue:null
   },
-  isModdified: {
+  isVerified: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-  isVerified:{
-    type:DataTypes.BOOLEAN,
-    defaultValue:false
+  earnedTokens: {
+    type: DataTypes.INTEGER,
+    defaultValue:0
   },
-  earnedTokens : {
-    type:DataTypes.INTEGER
+  availableTokens: {
+    type: DataTypes.INTEGER,
+    defaultValue:0
   },
-  availableTokens:{
-    type:DataTypes.INTEGER
-  }
 });
 
-creatorModel.hasOne(userModel);
+creatorModel.hasOne(User);
 creatorModel.hasOne(descriptionModel);
 creatorModel.hasMany(videoModel);
 studioModel.hasMany(creatorModel);
 creatorModel.belongsTo(studioModel);
-studioModel.hasOne(userModel);
-viewerModel.hasOne(userModel);
+studioModel.hasOne(User);
+viewerModel.hasOne(User);
 creatorModel.hasMany(WithdrawModel);
+
+
+User.belongsTo(viewerModel, { foreignKey: "viewerId" });
+User.belongsTo(creatorModel, { foreignKey: "creatorId" });
+User.belongsTo(studioModel, { foreignKey: "studioId" });
+
+viewerModel.hasOne(User, { foreignKey: "viewerId" });
+creatorModel.hasOne(User, { foreignKey: "creatorId" });
+studioModel.hasOne(User, { foreignKey: "studioId" });
 
 module.exports = creatorModel;

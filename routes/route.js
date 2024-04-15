@@ -4,12 +4,14 @@ const creatorRoutes = require("./creatorRoutes");
 const studioRoutes = require("./studioRoutes");
 const viewerRoutes = require("./viewerRoutes");
 const tokenRoutes = require("./tokenRoutes");
+const userRoutes = require("./userRoutes");
 const fs = require("fs");
 
 router.use("/viewer/", viewerRoutes);
 router.use("/creator/", creatorRoutes);
 router.use("/studio/", studioRoutes);
 router.use("/token/", tokenRoutes);
+router.use("/user/", userRoutes);
 
 router.get("/video", function (req, res) {
   // const range = req.headers.range;

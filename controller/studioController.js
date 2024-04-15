@@ -1,11 +1,38 @@
 const errorHandler = require("../error");
 const creatorController = require("./creatorController");
+const commonController = require("./commonController");
+const bcrypt = require("bcrypt");
+const userModel = require("../models/userModel");
+const studioModel = require("../models/studioModel");
 
-async function studioLogin(userData) {
+async function login(userData) {
   try {
     const category = "studio";
     const loggedInUser = await commonController.login(userData, category);
     return loggedInUser;
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function create(userData) {
+  try {
+    if (userData.category !== "studio") {
+      const err = {
+        status: 400,
+        message: "Invalid Route",
+      };
+      return errorHandler(err);
+    }
+    const hashedPass = await bcrypt.hash(userData.password, 10);
+    userData.password = hashedPass;
+    const savedUser = await userModel.create(userData);
+    delete userData.password;
+    const studioData = await studioModel.create(userData);
+    const { id } = studioData;
+    savedUser.studio = id;
+    await savedUser.save();
+    return savedUser.toJSON();
   } catch (err) {
     errorHandler(err);
   }
@@ -23,7 +50,6 @@ const createCreatorUnderStudio = async (creatorData) => {
   }
 };
 
-
 const suspendCreatorAccount = async (creatorId) => {
   try {
     return;
@@ -38,5 +64,6 @@ const deleteCreatorAccount = async () => {
 
 module.exports = {
   createCreatorUnderStudio,
-  studioLogin,
+  login,
+  create
 };

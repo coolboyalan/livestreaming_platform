@@ -1,4 +1,3 @@
-// server.js
 const NodeMediaServer = require("node-media-server");
 const fs = require("fs");
 const http = require("http");
@@ -37,10 +36,9 @@ nms.on("postPublish", (id, streamPath, args) => {
   const url = `http://localhost:${process.env.NMS_PORT}${streamPath}.flv`;
   
   const streamKey = streamPath.split("/")[2];
-
   http.get(url, (res) => {
     // Image will be stored at this path
-    const path = `./media/${streamKey + new Date()}.flv`;
+    const path = `./media/videos/${streamKey + new Date()}.flv`;
     const filePath = fs.createWriteStream(path);
     res.pipe(filePath);
     filePath

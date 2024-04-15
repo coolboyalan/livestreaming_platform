@@ -1,14 +1,13 @@
-const userModel = require("../models/userModel");
+const User = require("../models/userModel");
 const errorHandler = require("../error");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const err = {};
-
 async function login(userData, category) {
   try {
+    const err = {};
     const { username, password } = userData;
-    const data = await userModel.findOne({ where: { username } });
+    const data = await User.findOne({ where: { username } });
     let user;
     if (data) {
       user = data.toJSON();
@@ -45,13 +44,18 @@ async function login(userData, category) {
       expiresIn: "1d",
     });
 
-    const response = {
-      status: true,
-      message: "User logged in successfully",
-      token,
-      tokenData,
-    };
-    return response;
+    tokenData.token = token;
+
+    return tokenData;
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function authenticate(authToken) {
+  try {
+    const { userId } = jwt.verify(authToken, process.env.JWT);
+    return loggedInUser;
   } catch (err) {
     errorHandler(err);
   }
@@ -63,12 +67,12 @@ async function follow(followerId, selectedUserId) {
       status: 404,
     };
 
-    const follower = await userModel.findByPk(followerId);
+    const follower = await User.findByPk(followerId);
     if (!follower) {
       err.message = "Your account ID is invalid, please contact support";
       return errorHandler(err);
     }
-    const selectedUser = await userModel.findByPk(selectedUserId);
+    const selectedUser = await User.findByPk(selectedUserId);
     if (!selectedUser) {
       err.message = "The account you want to follow doesn't exist";
       return errorHandler(err);
@@ -98,12 +102,12 @@ async function unfollow(followerId, selectedUserId) {
       status: 404,
     };
 
-    const follower = await userModel.findByPk(followerId);
+    const follower = await User.findByPk(followerId);
     if (!follower) {
       err.message = "Your account ID is invalid, please contact support";
       return errorHandler(err);
     }
-    const selectedUser = await userModel.findByPk(selectedUserId);
+    const selectedUser = await User.findByPk(selectedUserId);
     if (!selectedUser) {
       err.message = "The account you want to unfollow doesn't exist";
       return errorHandler(err);
@@ -143,4 +147,5 @@ module.exports = {
   login,
   follow,
   unfollow,
+  authenticate,
 };

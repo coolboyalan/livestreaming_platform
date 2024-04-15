@@ -10,6 +10,14 @@ const getTokenPackages = async (r) => {
   }
 };
 
+async function createTokenPackage(tokenData) {
+  try {
+    const token = await TokenModel.create(tokenData);
+    return token.toJSON();
+  } catch (err) {
+    errorHandler(err);
+  }
+}
 
 module.exports = {
   getTokenPackages,

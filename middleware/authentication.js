@@ -1,10 +1,20 @@
 const jwt = require("jsonwebtoken");
 const errorHandler = require("../error");
+const userController = require("../controller/userController");
 
-async function authentication(req, res, next) {
+async function authenticate(req, res, next) {
   try {
-    const token = req.headers["auth"];
-    const user = jwt.verify(token, process.env.JWT);
+    const { auth: authToken } = req.headers;
+    const loggedInUser = jwt.verify(authToken, process.env.JWT);
+    const user = await userController.getUser(loggedInUser.userId);
+
+    if(!user){
+      const err = {
+        status:401,
+        message:"Please register again"
+      }
+      return next(err);
+    }
     req.user = user;
     next();
   } catch (err) {
@@ -16,7 +26,6 @@ async function authorization(req, res, next) {
   try {
     const user = req.user;
     const { category } = user;
-
     if (category === "admin") return next();
 
     if (req.originalUrl.match(category)) return next();
@@ -38,4 +47,4 @@ async function subAdmin(req, res, next) {
     next(err);
   }
 }
-module.exports = { authentication, authorization };
+module.exports = { authenticate, authorization };

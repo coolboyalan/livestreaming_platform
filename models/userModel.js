@@ -1,7 +1,7 @@
 const sequelize = require("../db");
 const { Sequelize, DataTypes } = require("sequelize");
 
-const user = sequelize.define(
+const User = sequelize.define(
   "user",
   {
     username: {
@@ -12,6 +12,10 @@ const user = sequelize.define(
     email: {
       type: DataTypes.STRING,
       unique: true,
+      allowNull: false,
+      validate: {
+        isEmail: true,
+      },
     },
     password: {
       type: DataTypes.STRING,
@@ -36,11 +40,11 @@ const user = sequelize.define(
     studioId: {
       type: DataTypes.INTEGER,
     },
-    followers:{
-      type:DataTypes.JSON
+    followers: {
+      type: DataTypes.JSON,
     },
-    following:{
-      type:DataTypes.JSON
+    following: {
+      type: DataTypes.JSON,
     },
     totalWatchTIme: {
       type: DataTypes.INTEGER,
@@ -60,4 +64,4 @@ const user = sequelize.define(
   { timestamps: true }
 );
 
-module.exports = user;
+module.exports = User;

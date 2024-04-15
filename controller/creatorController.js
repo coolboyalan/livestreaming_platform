@@ -1,34 +1,54 @@
 const userModel = require("../models/userModel");
-const creatorModel = require("../models/creatorModel");
+const Creator = require("../models/creatorModel");
 const descriptionModel = require("../models/descriptionModel");
 const videoModel = require("../models/videoModel");
 const studioModel = require("../models/studioModel");
 const commonController = require("./commonController");
 const withdrawController = require("./withdrawController");
-const bcrypt = require("bcrypt");
+const userController = require("./userController");
 const errorHandler = require("../error");
 const fs = require("fs");
 const path = require("path");
 const WithdrawModel = require("../models/withdrawModel");
+const { log } = require("console");
 
-async function createUser(userData) {
+async function createUser(loggedInUser, userData) {
   try {
-    if (userData.category === "viewer") {
+    const { id: userId } = loggedInUser.toJSON();
+    const user = await userController.getUser(userId);
+
+    const err = {
+      status: 400,
+      message: "Invalid Route",
+    };
+
+    if (!user) {
+      err.message = "there is no creator, please register";
+      return errorHandler(err);
+    }
+
+    if (user.category !== "creator") {
       const err = {
         status: 400,
         message: "Invalid Route",
       };
       return errorHandler(err);
     }
-    const hashedPass = await bcrypt.hash(userData.password, 10);
-    userData.password = hashedPass;
-    const savedUser = await userModel.create(userData);
-    delete userData.password;
-    const creatorData = await addCreator(userData);
-    const { id } = creatorData;
-    savedUser.creatorId = id;
-    await savedUser.save();
-    return savedUser.toJSON();
+
+    if (user.creatorId!==null) {
+      const err = {
+        status: 403,
+        message: "Please use the update feature to do this task",
+      };
+      return errorHandler(err)
+    }
+
+    userData.category = "creator";
+    const creator = await addCreator(userData);
+    const { id } = creator;
+    const creatorId = id;
+    await user.update({ creatorId });
+    return creator.toJSON();
   } catch (err) {
     errorHandler(err);
   }
@@ -45,7 +65,8 @@ async function createDescription(descriptionData, userId) {
 
 async function addCreator(userData) {
   try {
-    const savedCreator = await creatorModel.create(userData);
+    const files = await checkedFiles(userData.userId, userData.files);
+    const savedCreator = await Creator.create(userData);
     const { happyMe, sadMe, aboutMe, onlineTime } = userData;
     const { id: creatorId } = savedCreator.toJSON();
     const descriptionData = { happyMe, sadMe, aboutMe, onlineTime, creatorId };
@@ -56,6 +77,8 @@ async function addCreator(userData) {
     const descriptionId = savedDescriptionData.id;
 
     savedCreator.descriptionId = descriptionId;
+    const filePath = await uploadFiles(userData.userId, files);
+    savedCreator.profilePicture = filePath;
     await savedCreator.save();
     return savedCreator;
   } catch (err) {
@@ -63,7 +86,62 @@ async function addCreator(userData) {
   }
 }
 
-async function creatorLogin(userData) {
+async function checkedFiles(userId, userFiles) {
+  try {
+    const fileNameArray = ["governmentIdPicture", "photoVerification"];
+    let profilePicture;
+    const files = userFiles.filter((file) => {
+      if (fileNameArray.includes(file.fieldname)) {
+        return true;
+      }
+      if (file.fieldname === "profilePicture") {
+        profilePicture = file;
+      }
+    });
+    console.log(files);
+    if (files.length !== 2) {
+      const err = {
+        status: 400,
+        message: "Government documents verification files missing",
+      };
+      return errorHandler(err);
+    }
+    if (profilePicture) files.push(profilePicture);
+
+    return files;
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function uploadFiles(userId, files) {
+  try {
+    const uploadDir = path.join(
+      __dirname,
+      `../media/photos/creators/${userId}`
+    );
+
+    files.forEach(async (file) => {
+      const uniqueFilename = userId + "-" + file.fieldname;
+
+      // Create the directory if it doesn't exist
+      if (!fs.existsSync(uploadDir)) {
+        await fs.promises.mkdir(uploadDir, { recursive: true });
+      }
+
+      const filePath = path.join(uploadDir, uniqueFilename);
+
+      // Use fs.writeFile() asynchronously to write the file to the desired location
+      await fs.promises.writeFile(filePath, file.buffer);
+      console.log(`File saved: ${filePath}`);
+    });
+    return `${uploadDir}/${userId}-profilePicture`;
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function login(userData) {
   try {
     const category = "creator";
     const loggedInUser = await commonController.login(userData, category);
@@ -73,39 +151,47 @@ async function creatorLogin(userData) {
   }
 }
 
-async function updateCreator(creatorData) {
-  try {
-    const creator = await creatorDetails(creatorId);
-    await creator.update(creatorData);
-    return creator.toJSON();
-  } catch (err) {
-    errorHandler(err);
-  }
-}
+// async function updateCreator(creatorData) {
+//   try {
+//     const { creatorId } = creatorData;
+//     const creator = await creatorDetails(creatorId);
+//     await creator.update(creatorData);
+//     return creator.toJSON();
+//   } catch (err) {
+//     errorHandler(err);
+//   }
+// }
 
-async function getCreator(creatorId) {
-  try {
-    const creator = await creatorModel.findByPk(creatorId);
-    if (!creator) {
-      const err = {
-        status: 404,
-        message: "there is no creator with this id",
-      };
-      return errorHandler(err);
-    }
-    return creator.toJSON();
-  } catch (err) {
-    errorHandler(err);
-  }
-}
+// async function getCreator(creatorId) {
+//   try {
+//     const creator = await Creator.findByPk(creatorId);
+//     if (!creator) {
+//       const err = {
+//         status: 404,
+//         message: "there is no creator with this id",
+//       };
+//       return errorHandler(err);
+//     }
+//     return creator.toJSON();
+//   } catch (err) {
+//     errorHandler(err);
+//   }
+// }
 
 async function getAllCreators() {
   try {
-    const creators = await creatorModel.findAll({
+    const creators = await Creator.findAll({
       where: { isVerified: true },
       attributes: ["id", "firstName", "lastName", "profilePicture"],
     });
-    return creators.toJSON();
+    if (!creators.length) {
+      const err = {
+        status: 404,
+        message: "There are no creators",
+      };
+      return errorHandler(err);
+    }
+    return creators;
   } catch (err) {
     errorHandler(err);
   }
@@ -113,7 +199,7 @@ async function getAllCreators() {
 
 async function creatorDetails(creatorId) {
   try {
-    const creator = await creatorModel.findOne({
+    const creator = await Creator.findOne({
       where: { id: creatorId },
       include: [userModel, descriptionModel, videoModel, studioModel],
     });
@@ -124,8 +210,42 @@ async function creatorDetails(creatorId) {
       };
       return errorHandler(error);
     }
-    const creatorData = creator.toJSON();
-    return creatorData;
+    return creator;
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
+async function creatorDetails(creatorId) {
+  try {
+    const creator = await Creator.findOne({
+      where: { id: creatorId },
+      include: [
+        {
+          model: userModel,
+          attributes: ["id", "username", "email"], // Specify the attributes you want to retrieve from the userModel
+        },
+        {
+          model: descriptionModel,
+        },
+        {
+          model: videoModel,
+          attributes: ["title", "location"], // Specify the attributes you want to retrieve from the videoModel
+        },
+        {
+          model: studioModel,
+          attributes: ["id", "firstName", "lastName"], // Specify the attributes you want to retrieve from the studioModel
+        },
+      ],
+    });
+    if (!creator) {
+      const error = {
+        status: 404,
+        message: "creator doesn't exist",
+      };
+      return errorHandler(error);
+    }
+    return creator;
   } catch (err) {
     errorHandler(err);
   }
@@ -143,16 +263,15 @@ async function getLiveCreators(contentCategory) {
     if (contentCategory) {
       options.where.contentCategory = contentCategory;
     }
-    const creators = await creatorModel.findAll(options);
-    if (!creators) {
+    const creators = await Creator.findAll(options);
+    if (!creators.length) {
       const error = {
         status: 404,
-        message: "there is no data for this creator",
+        message: "None of the creators are live",
       };
-      throw new MyError(error);
+      return errorHandler(error);
     }
-    const creatorData = creators.toJSON();
-    return creatorData;
+    return creators;
   } catch (err) {
     errorHandler(err);
   }
@@ -160,7 +279,7 @@ async function getLiveCreators(contentCategory) {
 
 async function getLiveStreamCredentials(creatorId) {
   try {
-    const creator = await creatorModel.findOne({
+    const creator = await Creator.findOne({
       where: {
         id: creatorId,
       },
@@ -184,114 +303,130 @@ async function getLiveStreamCredentials(creatorId) {
 
 async function getAllVideosByCreator(creatorId) {
   try {
-    const allVideos = await videoModel.findAll({ where: { creatorId } });
-    return allVideos.toJSON();
-  } catch (err) {
-    errorHandler(err);
-  }
-}
+    const options = {};
 
-async function udpateLiveStatus(creatorId, status) {
-  try {
-    const creator = await creatorModel.findByPk(creatorId);
-    creator.isLive = status;
-    if (!status) {
-      creator.streamKey = null;
+    if (creatorId) {
+      options.where = {
+        creatorId,
+      };
     }
-    await creator;
-  } catch (err) {
-    errorHandler(err);
-  }
-}
+    const allVideos = await videoModel.findAll(options);
 
-async function updateVideoDetails(videoData, videoThumbnail) {
-  try {
-    const { id } = videoData;
-    const video = await videoModel.findOne({ where: { id } });
-
-    const err = {};
-
-    if (!video) {
-      err.status = 404;
-      err.message = "There is no video with this id";
-      return errorHandler(err);
-    }
-
-    let destinationPath;
-    if (videoThumbnail) {
-      destinationPath = path.join("../media", file.originalname);
-      fs.rename(file.path, destinationPath, (err) => {
-        if (err) {
-          err.status = 500;
-          err.message = "Error occurred while uploading file.";
-          return errorHandler(err);
-        }
-        console.log(`File ${file.originalname} uploaded successfully.`);
-      });
-    }
-  } catch (err) {
-    errorHandler(err);
-  }
-}
-
-async function updateTokens(creatorId, tokens,internal) {
-  try {
-    const creator = await creatorModel.findByPk(creatorId);
-    creator.availableTokens += tokens;
-    if (tokens > 0 && !internal) {
-      creator.earnedTokens += tokens;
-    }
-    await creator.save();
-    return creator.toJSON();
-  } catch (err) {
-    errorHandler(err);
-  }
-}
-
-async function withdrawTokens(creatorId, withdrawData) {
-  try {
-    const creator = await creatorModel.findByPk(creatorId);
-    const { tokenQuantity } = withdrawData;
-    const { availableTokens } = creator.toJSON();
-    if (tokenQuantity > availableTokens) {
+    if (!allVideos.length) {
       const err = {
         status: 404,
-        message: "You don't have enough tokens to withdraw",
+        message: "No videos found",
       };
       return errorHandler(err);
     }
 
-    withdraw.creatorId = creatorId;
-    withdraw.amount = tokenQuantity * 0.05;
-
-    const withdraw = await withdrawController.createWithdraw(withdrawData);
-    return withdraw;
+    return allVideos;
   } catch (err) {
     errorHandler(err);
   }
 }
 
-async function deleteCreatorAccount(id) {
-  try {
-    const creator = await creatorModel.findOne({ where: { id } });
-    creator.isDeleted = true;
-    await creator.save();
-  } catch (err) {
-    errorHandler(err);
-  }
-}
+// async function udpateLiveStatus(creatorId, status) {
+//   try {
+//     const creator = await Creator.findByPk(creatorId);
+//     creator.isLive = status;
+//     if (!status) {
+//       creator.streamKey = null;
+//     }
+//     await creator;
+//   } catch (err) {
+//     errorHandler(err);
+//   }
+// }
+
+// async function updateVideoDetails(videoData, videoThumbnail) {
+//   try {
+//     const { id } = videoData;
+//     const video = await videoModel.findOne({ where: { id } });
+
+//     const err = {};
+
+//     if (!video) {
+//       err.status = 404;
+//       err.message = "There is no video with this id";
+//       return errorHandler(err);
+//     }
+
+//     let destinationPath;
+//     if (videoThumbnail) {
+//       destinationPath = path.join("../media", file.originalname);
+//       fs.rename(file.path, destinationPath, (err) => {
+//         if (err) {
+//           err.status = 500;
+//           err.message = "Error occurred while uploading file.";
+//           return errorHandler(err);
+//         }
+//         console.log(`File ${file.originalname} uploaded successfully.`);
+//       });
+//     }
+//   } catch (err) {
+//     errorHandler(err);
+//   }
+// }
+
+// async function updateTokens(creatorId, tokens, internal) {
+//   try {
+//     const creator = await Creator.findByPk(creatorId);
+//     creator.availableTokens += tokens;
+//     if (tokens > 0 && !internal) {
+//       creator.earnedTokens += tokens;
+//     }
+//     await creator.save();
+//     return creator.toJSON();
+//   } catch (err) {
+//     errorHandler(err);
+//   }
+// }
+
+// async function withdrawTokens(creatorId, withdrawData) {
+//   try {
+//     const creator = await Creator.findByPk(creatorId);
+//     const { tokenQuantity } = withdrawData;
+//     const { availableTokens } = creator.toJSON();
+//     if (tokenQuantity > availableTokens) {
+//       const err = {
+//         status: 404,
+//         message: "You don't have enough tokens to withdraw",
+//       };
+//       return errorHandler(err);
+//     }
+
+//     withdraw.creatorId = creatorId;
+//     withdraw.amount = tokenQuantity * 0.05;
+
+//     const withdraw = await withdrawController.createWithdraw(withdrawData);
+//     return withdraw;
+//   } catch (err) {
+//     errorHandler(err);
+//   }
+// }
+
+// async function deleteCreatorAccount(id) {
+//   try {
+//     const creator = await Creator.findOne({ where: { id } });
+//     creator.isDeleted = true;
+//     await creator.save();
+//   } catch (err) {
+//     errorHandler(err);
+//   }
+// }
 
 module.exports = {
   createUser,
-  creatorLogin,
+  login,
   creatorDetails,
   getLiveCreators,
   getLiveStreamCredentials,
   addCreator,
   getAllVideosByCreator,
-  updateCreator,
+  // updateCreator,
   getAllCreators,
-  udpateLiveStatus,
-  updateTokens,
-  getCreator,
+  // udpateLiveStatus,
+  // updateTokens,
+  // getCreator,
 };
