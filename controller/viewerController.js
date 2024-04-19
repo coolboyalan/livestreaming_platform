@@ -18,18 +18,13 @@ async function createUser(userData) {
     const hashedPass = await bcrypt.hash(password, 10);
     allowedUserData.password = hashedPass;
     const savedUser = await userModel.create(allowedUserData);
-    console.log(savedUser.toJSON());
-    const viewerData = await createViewer(allowedUserData);
-    const { id } = viewerData;
-    savedUser.viewerId = id;
-    await savedUser.save();
     return savedUser.toJSON();
   } catch (err) {
     errorHandler(err);
   }
 }
 
-async function createViewer(viewerData) {
+async function createViewer(userId,viewerData) {
   try {
     const savedViewer = await viewerModel.create(viewerData);
     return savedViewer.toJSON();
@@ -38,7 +33,7 @@ async function createViewer(viewerData) {
   }
 }
 
-async function getViewer(viewerId) {
+async function getViewer(userId) {
   try {
     const viewer = await viewerModel.findOne({ where: { id: viewerId } });
     return viewer.toJSON();

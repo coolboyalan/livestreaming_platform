@@ -103,9 +103,11 @@ async function createUser(req, res, next) {
       email: user.email,
       phone: creator.taxNo,
       address: creator.city,
-      loggedIn:true
+      loggedIn: true,
+      followers: creator.followers,
+      categories:req.categories
     };
-    res.render("profile",response);
+    res.render("profile", response);
   } catch (err) {
     next(err);
   }
@@ -115,6 +117,13 @@ async function login(req, res, next) {
   try {
     const userData = req.body;
     const loggedInUser = await creatorController.login(userData);
+
+    const { status, message } = loggedInUser;
+
+    if(status && message){
+      return res.render('login',{message,categories:req.categories})
+    }
+
     req.session.user = loggedInUser;
     res.redirect("creators");
   } catch (err) {

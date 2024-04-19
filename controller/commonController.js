@@ -1,7 +1,18 @@
 const User = require("../models/userModel");
+const Category = require("../models/categoryModel");
 const errorHandler = require("../error");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
+async function contentCategories() {
+  try {
+    const categories = await Category.findAll();
+    return categories;
+  } catch (err) {
+    errorHandler(err);
+  }
+}
+
 
 async function login(userData, category) {
   try {
@@ -15,18 +26,18 @@ async function login(userData, category) {
     if (!data || user.category !== category || user.isDeleted) {
       err.status = 404;
       err.message = `There is no ${category} with this username`;
-      return errorHandler(err);
+      return err;
     }
     if (user.isSuspended) {
       err.status = 403;
       err.message = `Your ${category} account has been suspended`;
-      return errorHandler(err);
+      return err;
     }
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
       err.status = 401;
       err.message = "Incorrect Password";
-      return errorHandler(err);
+      return err;
     }
 
     const categoryKey = `${category}Id`;
@@ -148,4 +159,5 @@ module.exports = {
   follow,
   unfollow,
   authenticate,
+  contentCategories,
 };

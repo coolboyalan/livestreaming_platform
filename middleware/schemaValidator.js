@@ -11,7 +11,8 @@ const schemaValidator = function (schema) {
       console.log(true)
       const error = {
         status:400,
-        message:err.message
+        message:err.message,
+        categories:req.categories
       }
       res.render('error',error)
     }

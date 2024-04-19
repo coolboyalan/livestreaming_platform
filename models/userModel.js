@@ -31,6 +31,10 @@ const User = sequelize.define(
       }),
       allowNull: false,
     },
+    contentCategory: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     viewerId: {
       type: DataTypes.INTEGER,
     },

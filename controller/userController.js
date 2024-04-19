@@ -5,7 +5,7 @@ const User = require("../models/userModel");
 const { Op } = require("sequelize");
 
 async function signUp(userData) {
-  const { username, email, isAdult, category } = userData;
+  const { username, email, isAdult, category,contentCategory } = userData;
   let { password } = userData;
 
   try {
@@ -35,6 +35,7 @@ async function signUp(userData) {
       password,
       isAdult,
       category,
+      contentCategory
     });
 
     return newUser.toJSON();

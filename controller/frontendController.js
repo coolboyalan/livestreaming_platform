@@ -1,4 +1,4 @@
-const commonController = require("../middleware/authentication");
+const commonController = require("./commonController");
 const creatorController = require("../controller/creatorController");
 const User = require("../models/userModel");
 const Creator = require("../models/creatorModel");
@@ -6,7 +6,8 @@ const Viewer = require("../models/viewerModel");
 const Studio = require("../models/studioModel");
 const httpStatus = require("http-status");
 
-const app  = require("express");
+const app = require("express");
+const Category = require("../models/categoryModel");
 const router = app.Router();
 
 router.get(["/", "/index.html", "/index", "/home"], homePage);
@@ -36,13 +37,11 @@ router
 
 router.get("/logout", logout);
 router.get("/about", about);
-router.get("/creators/categories", categories);
+router.get("/creators-categories", categories);
 router.get("/contact", contact);
 router.get("/tokens", allowLogin, tokensPage);
-router.get("/live-creaor/:roomId");
 
-
-function allowLogin(req, res, next) {
+async function allowLogin(req, res, next) {
   if (req.session.user && req.cookies.user_id) {
     next();
   } else {
@@ -105,14 +104,19 @@ async function profile(req, res, next) {
       return res.render("index", {
         title: "Creators",
         loggedIn,
+        categories: req.categories,
       });
     }
+
     const response = {
       name: `${data.firstName} ${data.lastName}`,
       email: data.email,
       phone: data.taxNo,
       address: data.city,
       loggedIn,
+      followers: data.followers || 0,
+      tokens: data.availableTokens,
+      categories: req.categories,
     };
     res.render("profile", response);
   } catch (err) {
@@ -141,9 +145,9 @@ function logout(req, res, next) {
   try {
     if (req.session.user && req.cookies.user_id) {
       res.clearCookie("user_id");
-      res.render("index");
+      res.render("index", { categories: req.categories });
     } else {
-      res.render("login");
+      res.render("login", { categories: req.categories });
     }
   } catch (err) {
     next(err);
@@ -154,7 +158,7 @@ async function homePage(req, res, next) {
   try {
     let loggedIn;
     if (req.session.user) loggedIn = true;
-    res.render("index", { loggedIn });
+    res.render("index", { loggedIn, categories: req.categories });
   } catch (err) {
     next(err);
   }
@@ -165,7 +169,12 @@ async function creators(req, res, next) {
     const creators = await creatorController.getAllCreators();
     let loggedIn;
     if (req.session.user) loggedIn = true;
-    res.render("creators", { title: "Creators", creators, loggedIn });
+    res.render("creators", {
+      title: "Creators",
+      creators,
+      loggedIn,
+      categories: req.categories,
+    });
   } catch (err) {
     next(err);
   }
@@ -175,7 +184,11 @@ async function viewerSignup(req, res, next) {
   try {
     let loggedIn;
     if (req.session.user) loggedIn = true;
-    res.render("viewer", { title: "Viewer SignUp", loggedIn });
+    res.render("viewer", {
+      title: "Viewer SignUp",
+      loggedIn,
+      categories: req.categories,
+    });
   } catch (err) {
     next(err);
   }
@@ -212,7 +225,12 @@ async function creatorSignup(req, res, next) {
   try {
     let loggedIn;
     if (req.session.user) loggedIn = true;
-    res.render("content-creator", { loggedIn });
+    const categoriesReponse = await commonController.contentCategories();
+    const categories = categoriesReponse.map((ele) => {
+      return ele.dataValues;
+    });
+    console.log(categories);
+    res.render("content-creator", { loggedIn, categories });
   } catch (err) {
     next(err);
   }
@@ -220,7 +238,7 @@ async function creatorSignup(req, res, next) {
 
 async function login(req, res, next) {
   try {
-    res.render("login");
+    res.render("login", { categories: req.categories });
   } catch (err) {
     next(err);
   }
@@ -231,12 +249,30 @@ async function creatorDetailsPage(req, res, next) {
     const userId = req.session.user.userId;
     const user = await User.findByPk(userId);
     let loggedIn;
+    console.log(req.session.user, user);
     if (req.session.user) loggedIn = true;
     if (user.creatorId) {
       return res.redirect("index");
     }
+    const { contentCategory: name } = user;
+    let subCategories = await Category.findOne({
+      where: {
+        name,
+      },
+    });
 
-    res.render("creatorDetails", { loggedIn });
+    if (!subCategories) {
+      subCategories = null;
+    } else if (!subCategories.subCategories.length) {
+      subCategories.subCategories.push(name);
+    }
+    subCategories = subCategories.subCategories;
+    res.render("creatorDetails", {
+      loggedIn,
+      subCategories,
+      contentCategory: name,
+      categories: req.categories,
+    });
   } catch (err) {
     next(err);
   }
@@ -258,7 +294,11 @@ async function about(req, res, next) {
   try {
     let loggedIn;
     if (req.session.user) loggedIn = true;
-    res.render("about", { title: "About", loggedIn });
+    res.render("about", {
+      title: "About",
+      loggedIn,
+      categories: req.categories,
+    });
   } catch (err) {
     next(err);
   }
@@ -268,7 +308,42 @@ async function categories(req, res, next) {
   try {
     let loggedIn;
     if (req.session.user) loggedIn = true;
-    res.render("categories", { title: "Categories", loggedIn });
+
+    if ("cat" in req.query) {
+      if (Array.isArray(req.query.cat)) {
+        const creators = await Creator.findAll({
+          where: {
+            subCategory: {
+              [sequelize.Op.in]: req.query.cat,
+            },
+          },
+        });
+        return res.render("creators", {
+          title: "Creators",
+          creators,
+          loggedIn,
+          categories: req.categories,
+        });
+      } else {
+        const creators = await Creator.findAll({
+          where: {
+            subCategory: req.query.cat,
+          },
+        });
+        return res.render("creators", {
+          title: "Creators",
+          creators,
+          loggedIn,
+          categories: req.categories,
+        });
+      }
+    }
+
+    return res.render("categories", {
+      title: "Categories",
+      loggedIn,
+      categories: req.categories,
+    });
   } catch (err) {
     next(err);
   }
@@ -278,7 +353,11 @@ async function contact(req, res, next) {
   try {
     let loggedIn;
     if (req.session.user) loggedIn = true;
-    res.render("contact", { title: "Contact", loggedIn });
+    res.render("contact", {
+      title: "Contact",
+      loggedIn,
+      categories: req.categories,
+    });
   } catch (err) {
     next(err);
   }
@@ -288,7 +367,11 @@ async function tokensPage(req, res, next) {
   try {
     let loggedIn;
     if (req.session.user) loggedIn = true;
-    res.render("tokens", { title: "Tokens", loggedIn });
+    res.render("tokens", {
+      title: "Tokens",
+      loggedIn,
+      categories: req.categories,
+    });
   } catch (err) {
     next(err);
   }

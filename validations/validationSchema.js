@@ -6,6 +6,8 @@ const creatorSignUpSchema = Joi.object({
   password: Joi.string().min(8).required(),
   isAdult: Joi.boolean().required(),
   category: Joi.string().valid("creator").required(),
+  contentCategory: Joi.string()
+    .required(),
   "confirm-password": Joi.string(),
 });
 
@@ -45,7 +47,7 @@ const studioLoginSchema = Joi.object({
 });
 
 const additionalDetailsSchema = Joi.object({
-  contentCategory: Joi.string().required(),
+  subCategory: Joi.string().required(),
   firstName: Joi.string().required(),
   lastName: Joi.string().required(),
   sex: Joi.string().valid("Male", "Female", "Others").required(),
@@ -62,7 +64,7 @@ const additionalDetailsSchema = Joi.object({
   companyName: Joi.string(),
   taxNo: Joi.string(),
   businessRegistrationNo: Joi.string(),
-  expiryDate:Joi.date(),
+  expiryDate: Joi.date(),
 });
 
 const studioSchema = Joi.object({

@@ -10,7 +10,7 @@ const errorHandler = require("../error");
 const fs = require("fs");
 const path = require("path");
 const WithdrawModel = require("../models/withdrawModel");
-const { log } = require("console");
+
 
 async function createUser(userId, userData) {
   try {
@@ -29,21 +29,22 @@ async function createUser(userId, userData) {
       return errorHandler(err);
     }
 
-    if (user.creatorId!==null) {
+    if (user.creatorId !== null) {
       const err = {
         status: 403,
         message: "Please use the update feature to do this task",
       };
-      return errorHandler(err)
+      return errorHandler(err);
     }
     userData.userId = user.id;
     userData.email = user.email;
     userData.category = "creator";
+    userData.followers = 0;
     const creator = await addCreator(userData);
     const { id } = creator;
     const creatorId = id;
     await user.update({ creatorId });
-    return {user,creator};
+    return { user, creator };
   } catch (err) {
     errorHandler(err);
   }

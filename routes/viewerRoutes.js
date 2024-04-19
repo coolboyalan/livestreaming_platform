@@ -36,8 +36,15 @@ async function login(req, res, next) {
   try {
     const loginData = req.body;
     const loggedInUser = await viewerController.viewerLogin(loginData);
+
+    const { status, message } = loggedInUser;
+
+    if (status && message) {
+      return res.render("login", { message,categories:req.categories });
+    }
+
     req.session.user = loggedInUser;
-    res.redirect('creators');
+    res.redirect("creators");
   } catch (err) {
     next(err);
   }

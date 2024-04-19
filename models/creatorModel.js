@@ -7,14 +7,14 @@ const studioModel = require("./studioModel");
 const viewerModel = require("./viewerModel");
 const PaymentModel = require("./paymentModel");
 const WithdrawModel = require("./withdrawModel");
+const categoryModel = require("./categoryModel");
 
 const creatorModel = sequelize.define("creator", {
   descriptionId: {
     type: DataTypes.INTEGER,
   },
-  contentCategory: {
+  subCategory: {
     type: DataTypes.STRING,
-    // TODO: to be discussed whether to go with pre-defined category or what
     allowNull:false
   },
   firstName: {
@@ -128,6 +128,10 @@ const creatorModel = sequelize.define("creator", {
     type: DataTypes.INTEGER,
     defaultValue:0
   },
+  followers:{
+    type:DataTypes.INTEGER,
+    defaultValue:0
+  }
 });
 
 creatorModel.hasOne(User);
