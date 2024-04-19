@@ -118,7 +118,7 @@ const creatorModel = sequelize.define("creator", {
   },
   isVerified: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false,
+    defaultValue: true,
   },
   earnedTokens: {
     type: DataTypes.INTEGER,

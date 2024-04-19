@@ -24,7 +24,6 @@ const viewerSignUpSchema = Joi.object({
   password: Joi.string().min(8).required(),
   isAdult: Joi.boolean().required(),
   category: Joi.string().valid("viewer").required(),
-  "confirm-password": Joi.string(),
 });
 
 const viewerLoginSchema = Joi.object({
@@ -63,7 +62,7 @@ const additionalDetailsSchema = Joi.object({
   companyName: Joi.string(),
   taxNo: Joi.string(),
   businessRegistrationNo: Joi.string(),
-  expiryDate:Joi.date()
+  expiryDate:Joi.date(),
 });
 
 const studioSchema = Joi.object({

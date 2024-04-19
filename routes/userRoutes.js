@@ -43,7 +43,12 @@ async function signUp(req, res, next) {
   try {
     const userData = req.body;
     const user = await userController.signUp(userData);
-    res.status(httpStatus.CREATED).json(user);
+
+    if(user.category==="creator"){
+      return res.redirect('/creator-details-add')
+    }
+
+    res.redirect('login');
   } catch (err) {
     next(err);
   }

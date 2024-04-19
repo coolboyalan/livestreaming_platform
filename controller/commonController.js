@@ -54,8 +54,8 @@ async function login(userData, category) {
 
 async function authenticate(authToken) {
   try {
-    const { userId } = jwt.verify(authToken, process.env.JWT);
-    return loggedInUser;
+    const loggedInUser = jwt.verify(authToken, process.env.JWT);
+    return loggedInUser
   } catch (err) {
     errorHandler(err);
   }

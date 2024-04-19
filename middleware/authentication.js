@@ -5,15 +5,13 @@ const userController = require("../controller/userController");
 async function authenticate(req, res, next) {
   try {
     const { auth: authToken } = req.headers;
-    const loggedInUser = jwt.verify(authToken, process.env.JWT);
-    const user = await userController.getUser(loggedInUser.userId);
 
-    if(!user){
-      const err = {
-        status:401,
-        message:"Please register again"
-      }
-      return next(err);
+    let loggedInUser;
+    let user;
+    if (authToken) {
+      loggedInUser = jwt.verify(authToken, process.env.JWT);
+      user = await userController.getUser(loggedInUser.userId);
+      console.log(123)
     }
     req.user = user;
     next();

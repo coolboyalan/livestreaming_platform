@@ -12,15 +12,9 @@ const path = require("path");
 const WithdrawModel = require("../models/withdrawModel");
 const { log } = require("console");
 
-async function createUser(loggedInUser, userData) {
+async function createUser(userId, userData) {
   try {
-    const { id: userId } = loggedInUser.toJSON();
     const user = await userController.getUser(userId);
-
-    const err = {
-      status: 400,
-      message: "Invalid Route",
-    };
 
     if (!user) {
       err.message = "there is no creator, please register";
@@ -42,13 +36,14 @@ async function createUser(loggedInUser, userData) {
       };
       return errorHandler(err)
     }
-
+    userData.userId = user.id;
+    userData.email = user.email;
     userData.category = "creator";
     const creator = await addCreator(userData);
     const { id } = creator;
     const creatorId = id;
     await user.update({ creatorId });
-    return creator.toJSON();
+    return {user,creator};
   } catch (err) {
     errorHandler(err);
   }
@@ -98,7 +93,6 @@ async function checkedFiles(userId, userFiles) {
         profilePicture = file;
       }
     });
-    console.log(files);
     if (files.length !== 2) {
       const err = {
         status: 400,
@@ -124,14 +118,12 @@ async function uploadFiles(userId, files) {
     files.forEach(async (file) => {
       const uniqueFilename = userId + "-" + file.fieldname;
 
-      // Create the directory if it doesn't exist
       if (!fs.existsSync(uploadDir)) {
         await fs.promises.mkdir(uploadDir, { recursive: true });
       }
 
       const filePath = path.join(uploadDir, uniqueFilename);
 
-      // Use fs.writeFile() asynchronously to write the file to the desired location
       await fs.promises.writeFile(filePath, file.buffer);
       console.log(`File saved: ${filePath}`);
     });
@@ -184,13 +176,6 @@ async function getAllCreators() {
       where: { isVerified: true },
       attributes: ["id", "firstName", "lastName", "profilePicture"],
     });
-    if (!creators.length) {
-      const err = {
-        status: 404,
-        message: "There are no creators",
-      };
-      return errorHandler(err);
-    }
     return creators;
   } catch (err) {
     errorHandler(err);

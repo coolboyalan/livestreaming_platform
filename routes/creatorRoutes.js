@@ -19,11 +19,7 @@ router.route("/liveCreators/:contentCategory").get(getLiveCreators);
 
 router
   .route("/create")
-  .post(
-    authenticate,
-    schemaValidator(valid.additionalDetailsSchema),
-    createUser
-  );
+  .post(schemaValidator(valid.additionalDetailsSchema), createUser);
 
 router.route("/login").post(schemaValidator(valid.creatorLoginSchema), login);
 
@@ -48,7 +44,7 @@ async function getCreatorData(req, res, next) {
   try {
     const { id } = req.params;
     const creatorData = await creatorController.creatorDetails(id);
-    res.status(httpStatus.OK).json({ status: true, data: creatorData });
+    res.status(httpStatus.OK).json(creatorData);
   } catch (err) {
     next(err);
   }
@@ -96,15 +92,20 @@ async function getAllVideosByCreator(req, res, next) {
 async function createUser(req, res, next) {
   try {
     const userData = req.body;
-    userData.userId = req.user.id;
     userData.files = req.files;
-    userData.email = req.user.email;
-    const loggedInUser = req.user;
-    const savedUser = await creatorController.createUser(
-      loggedInUser,
-      userData
-    );
-    res.status(httpStatus.CREATED).json(savedUser);
+    const userId = req.session.user.userId;
+    const savedUser = await creatorController.createUser(userId, userData);
+    const { user, creator } = savedUser;
+    req.session.user = user;
+    const response = {
+      // TODO: change to cretor
+      name: `${creator.firstName} ${creator.lastName}`,
+      email: user.email,
+      phone: creator.taxNo,
+      address: creator.city,
+      loggedIn:true
+    };
+    res.render("profile",response);
   } catch (err) {
     next(err);
   }
@@ -114,7 +115,8 @@ async function login(req, res, next) {
   try {
     const userData = req.body;
     const loggedInUser = await creatorController.login(userData);
-    res.status(200).json(loggedInUser);
+    req.session.user = loggedInUser;
+    res.redirect("creators");
   } catch (err) {
     next(err);
   }

@@ -8,7 +8,12 @@ const schemaValidator = function (schema) {
       }
       next();
     } catch (err) {
-      next(err);
+      console.log(true)
+      const error = {
+        status:400,
+        message:err.message
+      }
+      res.render('error',error)
     }
   };
 };

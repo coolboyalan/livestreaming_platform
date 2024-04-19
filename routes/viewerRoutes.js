@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const viewerController = require("../controller/viewerController");
 const schemaValidator = require("../middleware/schemaValidator");
+const valid = require("../validations/validationSchema");
 
 router
   .route("/create")
@@ -9,7 +10,7 @@ router
 
 router.route("/details/:viewerId").get(getViewer);
 
-router.route("/login").post(schemaValidator("loginSchema"), login);
+router.route("/login").post(schemaValidator(valid.viewerLoginSchema), login);
 
 async function createViewer(req, res, next) {
   try {
@@ -35,7 +36,8 @@ async function login(req, res, next) {
   try {
     const loginData = req.body;
     const loggedInUser = await viewerController.viewerLogin(loginData);
-    res.status(200).json(loggedInUser);
+    req.session.user = loggedInUser;
+    res.redirect('creators');
   } catch (err) {
     next(err);
   }

@@ -5,6 +5,8 @@ const studioRoutes = require("./studioRoutes");
 const viewerRoutes = require("./viewerRoutes");
 const tokenRoutes = require("./tokenRoutes");
 const userRoutes = require("./userRoutes");
+const commonController = require("../middleware/authentication");
+const creatorController = require("../controller/creatorController");
 const fs = require("fs");
 
 router.use("/viewer/", viewerRoutes);
@@ -60,5 +62,9 @@ const sendOGVideo = async (req, res) => {
     createReadStream(filename).pipe(res);
   }
 };
+
+router.get("/:error", (req, res) => {
+  res.render("error", { status: 404, message: "Not found" });
+});
 
 module.exports = router;
