@@ -48,8 +48,9 @@ app.use(
 );
 app.use(cookieParser());
 
-app.use("/", async (req, res, next) => {
+app.use(async (req, res, next) => {
   try {
+    if(req.categories) return next();
     let categories = await Category.findAll();
     categories = categories.map((ele) => {
       return ele.dataValues;

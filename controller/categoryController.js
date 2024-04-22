@@ -60,9 +60,8 @@ async function add (category){
             name:key,
             subCategories:category[key]
         })
-        console.log(cat);
 
     }
 }
 
-module.exports = add(category);
+// module.exports = category

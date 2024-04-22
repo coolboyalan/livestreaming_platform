@@ -11,6 +11,9 @@ const videoModel = sequelize.define("video", {
     allowNull: false,
     defaultValue: new Date(),
   },
+  description:{
+    type:DataTypes.STRING
+  },
   location: {
     type: DataTypes.STRING,
   },

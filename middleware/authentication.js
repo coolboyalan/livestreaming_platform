@@ -11,7 +11,6 @@ async function authenticate(req, res, next) {
     if (authToken) {
       loggedInUser = jwt.verify(authToken, process.env.JWT);
       user = await userController.getUser(loggedInUser.userId);
-      console.log(123)
     }
     req.user = user;
     next();

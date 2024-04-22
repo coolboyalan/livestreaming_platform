@@ -199,7 +199,6 @@ async function viewerSignupResponse(req, res, next) {
     const userData = req.body;
     delete userData.submit;
     delete userData["confirm-password"];
-    console.log(userData, req.body);
     req.url = "/user/viewer/create";
     req.method = "POST";
     await router.handle(req, res, next);
@@ -229,7 +228,6 @@ async function creatorSignup(req, res, next) {
     const categories = categoriesReponse.map((ele) => {
       return ele.dataValues;
     });
-    console.log(categories);
     res.render("content-creator", { loggedIn, categories });
   } catch (err) {
     next(err);
@@ -249,7 +247,6 @@ async function creatorDetailsPage(req, res, next) {
     const userId = req.session.user.userId;
     const user = await User.findByPk(userId);
     let loggedIn;
-    console.log(req.session.user, user);
     if (req.session.user) loggedIn = true;
     if (user.creatorId) {
       return res.redirect("index");

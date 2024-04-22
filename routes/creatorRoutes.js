@@ -44,7 +44,33 @@ async function getCreatorData(req, res, next) {
   try {
     const { id } = req.params;
     const creatorData = await creatorController.creatorDetails(id);
-    res.status(httpStatus.OK).json(creatorData);
+    const {
+      firstName,
+      lastName,
+      subCategory,
+      isVerfied,
+      videos,
+      followers,
+      city,
+      availableTokens,
+    } = creatorData;
+
+    let isLoggedIn;
+    req.session.user ? (isLoggedIn = true) : (isLoggedIn = false);
+
+    const response = {
+      name: `${firstName} ${lastName}`,
+      city,
+      subCategory,
+      isVerfied,
+      videos,
+      followers,
+      tokens: availableTokens,
+      videos,
+      isLoggedIn
+    };
+
+    res.status(httpStatus.OK).render("creatorProfile", response);
   } catch (err) {
     next(err);
   }
@@ -105,7 +131,7 @@ async function createUser(req, res, next) {
       address: creator.city,
       loggedIn: true,
       followers: creator.followers,
-      categories:req.categories
+      categories: req.categories,
     };
     res.render("profile", response);
   } catch (err) {
@@ -120,8 +146,8 @@ async function login(req, res, next) {
 
     const { status, message } = loggedInUser;
 
-    if(status && message){
-      return res.render('login',{message,categories:req.categories})
+    if (status && message) {
+      return res.render("login", { message, categories: req.categories });
     }
 
     req.session.user = loggedInUser;

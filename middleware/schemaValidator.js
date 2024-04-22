@@ -8,7 +8,6 @@ const schemaValidator = function (schema) {
       }
       next();
     } catch (err) {
-      console.log(true)
       const error = {
         status:400,
         message:err.message,
