@@ -151,5 +151,6 @@ User.belongsTo(studioModel, { foreignKey: "studioId" });
 viewerModel.hasOne(User, { foreignKey: "viewerId" });
 creatorModel.hasOne(User, { foreignKey: "creatorId" });
 studioModel.hasOne(User, { foreignKey: "studioId" });
+categoryModel.sync();
 
 module.exports = creatorModel;

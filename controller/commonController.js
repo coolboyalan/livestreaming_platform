@@ -3,7 +3,7 @@ const Category = require("../models/categoryModel");
 const errorHandler = require("../error");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
+ 
 async function contentCategories() {
   try {
     const categories = await Category.findAll();

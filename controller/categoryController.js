@@ -1,6 +1,5 @@
 const errorHandler = require("../error");
 const Category = require("../models/categoryModel");
-const { subCategories } = require("./creatorController");
 
 async function createCategory(categoryName, subCategories) {
   try {
@@ -52,16 +51,20 @@ const category = {
   Celebrities: ["Celebrities"],
 };
 
-
-async function add (category){
-    for(let key in category){
-
-        const cat = await Category.create({
-            name:key,
-            subCategories:category[key]
-        })
-
+async function addDefaultCategories() {
+  try {
+    for (let key in category) {
+      const cat = await Category.create({
+        name: key,
+        subCategories: category[key],
+      });
     }
+  } catch (err) {
+    errorHandler(err);
+  }
 }
 
-// module.exports = category
+module.exports = {
+  addDefaultCategories,
+  createCategory
+};
