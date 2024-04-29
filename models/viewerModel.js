@@ -5,18 +5,12 @@ const userModel = require("./userModel");
 const viewerModel = sequelize.define(
   "viewer",
   {
-    username: {
+    firstName: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
-    email: {
+    lastName:{
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    isAdult: {
-      type: DataTypes.BOOLEAN,
       allowNull: false,
     },
     category: {

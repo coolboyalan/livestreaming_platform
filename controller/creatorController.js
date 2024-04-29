@@ -23,6 +23,7 @@ async function createUser(userId, userData) {
 
     if (user.category !== "creator") {
       const err = {
+        loc:process.cwd(),
         status: 400,
         message: "Invalid Route",
       };
@@ -31,6 +32,7 @@ async function createUser(userId, userData) {
 
     if (user.creatorId !== null) {
       const err = {
+        loc:process.cwd(),
         status: 403,
         message: "Please use the update feature to do this task",
       };
@@ -96,6 +98,7 @@ async function checkedFiles(userId, userFiles) {
     });
     if (files.length !== 2) {
       const err = {
+        loc:process.cwd(),
         status: 400,
         message: "Government documents verification files missing",
       };
@@ -274,6 +277,7 @@ async function getLiveStreamCredentials(creatorId) {
 
     if (!creator.isVerified) {
       const err = {
+        loc:process.cwd(),
         status: 403,
         message: "please verify your account to get access to live stream",
       };
@@ -300,6 +304,7 @@ async function getAllVideosByCreator(creatorId) {
 
     if (!allVideos.length) {
       const err = {
+        loc:process.cwd(),
         status: 404,
         message: "No videos found",
       };

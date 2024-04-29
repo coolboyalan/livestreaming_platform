@@ -33,7 +33,7 @@ const User = sequelize.define(
     },
     contentCategory: {
       type: DataTypes.STRING,
-      allowNull: false,
+      defaultValue:'Viewer'
     },
     viewerId: {
       type: DataTypes.INTEGER,

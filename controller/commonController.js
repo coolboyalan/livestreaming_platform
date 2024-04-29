@@ -3,7 +3,7 @@ const Category = require("../models/categoryModel");
 const errorHandler = require("../error");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
- 
+
 async function contentCategories() {
   try {
     const categories = await Category.findAll();
@@ -12,7 +12,6 @@ async function contentCategories() {
     errorHandler(err);
   }
 }
-
 
 async function login(userData, category) {
   try {
@@ -66,7 +65,7 @@ async function login(userData, category) {
 async function authenticate(authToken) {
   try {
     const loggedInUser = jwt.verify(authToken, process.env.JWT);
-    return loggedInUser
+    return loggedInUser;
   } catch (err) {
     errorHandler(err);
   }
@@ -75,6 +74,7 @@ async function authenticate(authToken) {
 async function follow(followerId, selectedUserId) {
   try {
     const err = {
+      loc: process.cwd(),
       status: 404,
     };
 
@@ -110,6 +110,7 @@ async function follow(followerId, selectedUserId) {
 async function unfollow(followerId, selectedUserId) {
   try {
     const err = {
+      loc:process.cwd(),
       status: 404,
     };
 

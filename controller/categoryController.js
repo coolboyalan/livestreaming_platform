@@ -5,6 +5,7 @@ async function createCategory(categoryName, subCategories) {
   try {
     if (!categoryName || categoryName.trim().length === 0) {
       const err = {
+        loc: process.cwd(),
         status: 400,
         message: "Please provide category name",
       };
@@ -66,5 +67,5 @@ async function addDefaultCategories() {
 
 module.exports = {
   addDefaultCategories,
-  createCategory
+  createCategory,
 };

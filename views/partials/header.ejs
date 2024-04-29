@@ -106,7 +106,8 @@
                             <div class="dropdown-menu">
                                 <ul>
                                     <% if (ele.subCategories.length) { %>
-                                        <% ele.subCategories.forEach(sub => { %>
+                                      <% if (Array.isArray(ele.subCategories)) { %>
+                                         <% JSON.parse(JSON.stringify(ele.subCategories)).forEach(sub => { %>
                                             <li>
                                                 <a
                                                 class="dropdown-item nav-link nav_item"
@@ -115,6 +116,18 @@
                                                 >
                                             </li>
                                         <% }) %>
+                                      <% } else { %>
+                                        <% JSON.parse(ele.subCategories).forEach(sub => { %>
+                                          <li>
+                                              <a
+                                              class="dropdown-item nav-link nav_item"
+                                              href= <%=`/creators-categories?cat=${sub}` %>
+                                              ><%= sub %></a
+                                              >
+                                          </li>
+                                      <% }) %>
+                                      <% } %>
+                                       
                                     <% } else { %>
                                         <li>
                                             <a
@@ -158,7 +171,11 @@
           <li>
             <a class="nav-link" href="/contact">Contact</a>
           </li>
-          <li></li>
+          <li>
+            <% if (locals.loggedIn) { %>
+              <a class="nav-link" href="logout">Logout</a>
+            <% } %>
+          </li>
         </ul>
       </div>
       <ul class="navbar-nav attr-nav align-items-center">

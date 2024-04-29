@@ -14,7 +14,7 @@ const app = express();
 app.use(cors());
 app.use(multer().any());
 
-// NodeMediaServer.run();
+NodeMediaServer.run();
 
 app.use(express.static("public"));
 app.use(express.static("public/assets"));
@@ -43,7 +43,7 @@ app.use(
     saveUninitialized: true,
     resave: false,
     cookie: {
-      expires: 600000,
+      maxAge: 600000,
     },
   })
 );
@@ -56,8 +56,8 @@ app.use(async (req, res, next) => {
 
     if (!categories.length) {
       await categoryController.addDefaultCategories();
+      categories = await Category.findAll();
     }
-    categories = await Category.findAll();
     categories = categories.map((ele) => {
       return ele.dataValues;
     });

@@ -122,7 +122,7 @@ async function createUser(req, res, next) {
     const userId = req.session.user.userId;
     const savedUser = await creatorController.createUser(userId, userData);
     const { user, creator } = savedUser;
-    req.session.user = user;
+    // req.session.user = user;
     const response = {
       // TODO: change to cretor
       name: `${creator.firstName} ${creator.lastName}`,
